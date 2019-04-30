@@ -209,10 +209,11 @@ public class DHT22 {
 		@Override
 		public byte[] call() throws Exception {
 	    	
-	    	// do expensive (slow) stuff before we start.   	
+	    	// do expensive (slow) stuff before we start and privoritize thread.  	
 			byte[] data = new byte[5];
 	        long startTime = System.nanoTime(); 
-	        
+	        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+
 	    	sendStartSignal();
 	    	waitForResponseSignal();
 	    	for (int i = 0; i < 40; i++) {
@@ -227,6 +228,8 @@ public class DHT22 {
 	            	data[i / 8] |= 1;
 	            }
 	        }
+	    	
+	    	Thread.currentThread().setPriority(Thread.NORM_PRIORITY);
 	        return data;
 		}
 		

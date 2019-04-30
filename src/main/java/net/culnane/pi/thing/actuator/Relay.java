@@ -11,6 +11,11 @@ import com.pi4j.wiringpi.Gpio;
 
 import net.culnane.pi.thing.CommandLineRunner;
 
+/**
+ * Relay switch.
+ *
+ * @author Doug Culnane
+ */
 public class Relay {
 	
 	private boolean wiredOffWithNoPower = false;
