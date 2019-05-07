@@ -9,6 +9,8 @@ import com.pi4j.io.gpio.GpioPinPwmOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.RaspiPin;
 
+import net.culnane.pi.thing.CommandLineRunner;
+
 /**
  * Servo controller.
  *
@@ -101,5 +103,8 @@ public class Servo {
 			}
 		}
 	}
-
+	
+	public static String getUsage() {
+		return CommandLineRunner.JAVA_CMD + "net.culnane.pi.thing.actuator.Servo 18";
+	}
 }

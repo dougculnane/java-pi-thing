@@ -42,7 +42,7 @@ public class Relay {
 		}
 	}
 
-	public void main(String[] args) {
+	public static void main(String[] args) {
 		
 		if (Objects.isNull(args) || args.length == 0) {
 			System.out.println("Enter GPIO PIN as parameter");
