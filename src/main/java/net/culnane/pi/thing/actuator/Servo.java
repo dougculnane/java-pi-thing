@@ -9,8 +9,6 @@ import com.pi4j.io.gpio.GpioPinPwmOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.RaspiPin;
 
-import net.culnane.pi.thing.CommandLineRunner;
-
 /**
  * Servo controller.
  *
@@ -36,7 +34,7 @@ public class Servo {
 	public Servo(Pin pwmPin, Pin powerRelayPin) {
 
 		GpioController gpio = GpioFactory.getInstance();
-
+		
 		if (powerRelayPin == null) {
 			powerRelay = null;
 		} else {
@@ -67,7 +65,6 @@ public class Servo {
 		// 20 = 180
 		int pwmRate = 10 + angle * 10 / 180;
 		pwm.setPwm(pwmRate);
-
 		if (powerRelay != null) {
 			
 			if (powerRelay != null) {
@@ -84,27 +81,4 @@ public class Servo {
 		}
 	}
 	
-	
-	public static void main(String args) throws InterruptedException {
-		
-		Servo servo = new Servo(RaspiPin.GPIO_18);
-		for (int j=0; j < 10; j++) {
-
-			// rotate 180 in 1 second.
-			for (int i = 0; i <= 180; i++) {
-				servo.setPositionAngle(i);
-				Thread.sleep(1000/181);
-			}
-			
-			// rotate back 180 in 1 second.
-			for (int i = 180; i >= 0; i--) {
-				servo.setPositionAngle(i);
-				Thread.sleep(1000/181);
-			}
-		}
-	}
-	
-	public static String getUsage() {
-		return CommandLineRunner.JAVA_CMD + "net.culnane.pi.thing.actuator.Servo 18";
-	}
 }

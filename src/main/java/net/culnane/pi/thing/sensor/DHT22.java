@@ -13,10 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.wiringpi.Gpio;
-
-import net.culnane.pi.thing.CommandLineRunner;
 
 /**
  * Implements the DHT22 / AM2302 reading in Java using Pi4J.
@@ -138,62 +135,6 @@ public class DHT22 {
 		return temperature;
 	}
 	
-	/**
-	 * Run from command line to loop and make readings.
-	 * @throws IOException 
-	 */
-	public static void main(String[] args) throws IOException {
-    	
-		if (Objects.isNull(args) || args.length == 0) {
-			System.out.println("Enter GPIO PIN as parameter");
-			System.out.println(getUsage());
-			return;
-		}
-		
-		int pinNumber = Integer.valueOf(args[0]);
-		Pin pin = RaspiPin.getPinByAddress(pinNumber);
-    	if (Objects.isNull(pin)) {
-    		System.out.println("Can not find pin number: " + args[0]);
-    		return;
-    	}
-		
-        if (Gpio.wiringPiSetup() == -1) {
-            System.out.println("GPIO wiringPiSetup Failed!");
-            return;
-        }
-    	
-        System.out.println("Starting DHT22 on PIN: " + pin.getName());
-    	DHT22 dht22 = new DHT22(pin);
-    	int LOOP_SIZE = 10;
-    	int countSuccess = 0;
-    	for (int i=0; i < LOOP_SIZE; i++) {
-    		try {
-				Thread.sleep(3000);
-				System.out.println();
-
-				try {
-					dht22.read();
-	    	        System.out.println("Humidity=" + dht22.getHumidity() + 
-	    	        		"%, Temperature=" + dht22.getTemperature() + "*C");
-	    	        countSuccess++;
-	    		} catch (TimeoutException e) {
-	    			System.out.println("ERROR: " + e);
-				} catch (Exception e) {
-					System.out.println("ERROR: " + e);
-				}
-	    		
-    		} catch (InterruptedException e1) {
-				System.out.println("ERROR: " + e1);
-			}
-    	}
-    	System.out.println("Read success rate: "+ countSuccess + " / " + LOOP_SIZE);
-    	System.out.println("Ending DHT22");
-	}
-
-	public static String getUsage() {
-		return CommandLineRunner.JAVA_CMD + "net.culnane.pi.thing.sensor.DHT22 5";
-	}
-
 	/**
 	 * Callable Future for reading sensor.  Allows timeout if it gets stuck.
 	 */
