@@ -88,16 +88,22 @@ public class DHT22 {
         executor.shutdown();
     }
 
+     public boolean read() throws Exception {
+     	return read(true);
+     }
+
     /**
      * Make a new sensor reading.
      *
      * @throws Exception
      */
-	public boolean read() throws Exception {
+	public boolean read(boolean checkParity) throws Exception {
 		checkLastReadDelay();
 		lastRead = System.currentTimeMillis();
     	getData();
-    	checkParity();
+	if (checkParity) {
+    		checkParity();
+	}
     	humidity = getReadingValueFromBytes(data[0], data[1]);
     	temperature = getReadingValueFromBytes(data[2], data[3]);
     	lastRead = System.currentTimeMillis();
@@ -206,7 +212,7 @@ public class DHT22 {
 		}
     }
     
-    private class ParityCheckException extends Exception {
+    public class ParityCheckException extends IOException {
 		private static final long serialVersionUID = 1L;
     }
 
