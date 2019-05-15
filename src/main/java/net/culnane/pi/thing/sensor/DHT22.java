@@ -28,6 +28,11 @@ public class DHT22 {
 	 * Time in nanoseconds to separate ZERO and ONE signals.
 	 */
 	private static final int LONGEST_ZERO = 50000;
+	
+	/**
+	 * Minimum time in milliseconds to wait between reads of sensor.
+	 */
+	public static final int MIN_MILLISECS_BETWEEN_READS = 2500;
     
 	/**
 	 * PI4J Pin number.
@@ -87,23 +92,63 @@ public class DHT22 {
         readSensor.close();
         executor.shutdown();
     }
-
-     public boolean read() throws Exception {
-     	return read(true);
-     }
-
+    
+    public boolean doBestPossibleReadLoop() throws InterruptedException, IOException {
+		Exception returnException = null;
+	    for (int i=0; i < 5; i++) {
+			try {
+				if (read(true)) {
+					return true;
+				}
+			} catch (ParityCheckException pce) {
+				returnException = pce;
+			} catch (Exception e) {
+				if (Objects.isNull(returnException)) {
+					returnException = e;
+				}
+			}
+			Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
+		}
+	    // Failed so turn of parity check and hope to return something better than and error!
+	    if (ParityCheckException.class.getName().equals(returnException.getClass().getName())) {
+	    	for (int i=0; i < 5; i++) {
+		    	try {
+					if (read(false)) {
+						return true;
+					}
+		    	} catch (Exception e) {
+					returnException = e;
+				}
+		    	Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
+		    }
+	    }
+	    throw new IOException(returnException);
+	}
+    
     /**
      * Make a new sensor reading.
-     *
+     * 
+     * @return
+     * @throws Exception
+     */
+    public boolean read() throws Exception {
+    	return read(true);
+    }
+
+    /**
+     * Make a new sensor reading
+     * 
+     * @param checkParity Should a parity check be performed?
+     * @return
      * @throws Exception
      */
 	public boolean read(boolean checkParity) throws Exception {
 		checkLastReadDelay();
 		lastRead = System.currentTimeMillis();
     	getData();
-	if (checkParity) {
-    		checkParity();
-	}
+    	if (checkParity) {
+			checkParity();
+		}
     	humidity = getReadingValueFromBytes(data[0], data[1]);
     	temperature = getReadingValueFromBytes(data[2], data[3]);
     	lastRead = System.currentTimeMillis();
