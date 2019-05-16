@@ -18,7 +18,7 @@ public class CommandLineRunner {
 
 	private static final int TEST_LOOP_SIZE = 10;
 	
-	public static final String JAVA_CMD = "java -cp ./java-pi-thing-" 
+	public static final String JAVA_CMD = "java -jar ./java-pi-thing-" 
 			+ getVersion() + "-jar-with-dependencies.jar ";
 	
 	public static void main(String[] args) throws Exception {
