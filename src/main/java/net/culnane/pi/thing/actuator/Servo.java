@@ -60,11 +60,6 @@ public class Servo {
 			angle = 180;
 		}
 
-		// 10 = 0
-		// 15 = 90
-		// 20 = 180
-		int pwmRate = 10 + angle * 10 / 180;
-		pwm.setPwm(pwmRate);
 		if (powerRelay != null) {
 			
 			if (powerRelay != null) {
@@ -79,6 +74,12 @@ public class Servo {
 				}
 			}, 5, TimeUnit.SECONDS);
 		}
+		
+		// 10 = 0
+		// 15 = 90
+		// 20 = 180
+		int pwmRate = 10 + angle * 10 / 180;
+		pwm.setPwm(pwmRate);
 	}
 	
 }
