@@ -76,7 +76,6 @@ public class CommandLineRunner {
     	DHT22 dht22 = new DHT22(pin);
     	int countSuccess = 0;
     	for (int i=0; i < TEST_LOOP_SIZE; i++) {
-			Thread.sleep(3000);
 			System.out.println();
 			try {
 				dht22.read();
@@ -88,6 +87,7 @@ public class CommandLineRunner {
 			} catch (Exception e) {
 				System.err.println("ERROR: " + e);
 			}
+			Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
     	}
     	System.out.println("Read success rate: "+ countSuccess + " / " + TEST_LOOP_SIZE);
 	}
