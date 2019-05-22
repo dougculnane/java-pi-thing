@@ -4,13 +4,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Hashtable;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.wiringpi.Gpio;
@@ -71,10 +72,12 @@ public class DHT22 {
 
     /**
      * Communicate with sensor to get new reading data.
+     * @throws ExecutionException 
+     * @throws InterruptedException 
      *
      * @throws Exception if failed to successfully read data.
      */
-    private void getData() throws Exception {
+    private void getData() throws IOException {
     	ExecutorService executor = Executors.newSingleThreadExecutor();
     	ReadSensorFuture readSensor = new ReadSensorFuture();
     	Future<byte[]> future = executor.submit(readSensor);
@@ -83,50 +86,45 @@ public class DHT22 {
         try {
             data = future.get(2, TimeUnit.SECONDS);
             readSensor.close();
-        } catch (TimeoutException e) {
+        } catch (Exception e) {
         	readSensor.close();
         	future.cancel(true);
             executor.shutdown();
-            throw e;
+            throw new IOException(e);
         }
         readSensor.close();
         executor.shutdown();
     }
     
-    public boolean doBestPossibleReadLoop() throws InterruptedException, IOException {
-		Exception returnException = null;
-	    for (int i=0; i < 5; i++) {
+    public boolean doReadLoop() throws InterruptedException, IOException {
+		Hashtable<IOException, Integer> exceptions = new Hashtable<IOException, Integer>();
+	    for (int i=0; i < 10; i++) {
 			try {
 				if (read(true)) {
 					return true;
 				}
-			} catch (ParityCheckException pce) {
-				returnException = pce;
-			} catch (Exception e) {
-				if (Objects.isNull(returnException)) {
-					returnException = e;
-				}
+			} catch (IOException e) {
+			    if (Objects.isNull(exceptions.get(e))) {
+			        exceptions.put(e, 1);
+			    } else {
+			        exceptions.put(e, exceptions.get(e).intValue() + 1);
+			    }
 			}
 			Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
 		}
-	    // Failed so turn of parity check and hope to return something better than and error!
-	    if (ParityCheckException.class.getName().equals(returnException.getClass().getName())) {
-	    	for (int i=0; i < 5; i++) {
-		    	try {
-					if (read(false)) {
-						return true;
-					}
-		    	} catch (Exception e) {
-					returnException = e;
-				}
-		    	Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
-		    }
+	    // return the most common exception.
+	    IOException returnException = null;
+	    int exceptionCount =  0;
+	    for (IOException e : exceptions.keySet()) {
+	        if (exceptions.get(e).intValue() > exceptionCount) {
+	            returnException = e;
+	        }
 	    }
-	    throw new IOException(returnException);
+	    throw returnException;
 	}
     
     /**
-     * Make a new sensor reading.
+     * Make one new sensor reading.
      * 
      * @return
      * @throws Exception
@@ -140,25 +138,41 @@ public class DHT22 {
      * 
      * @param checkParity Should a parity check be performed?
      * @return
-     * @throws Exception
+     * @throws ValueOutOfOperatingRangeException
+     * @throws ParityCheckException
+     * @throws IOException
      */
-	public boolean read(boolean checkParity) throws Exception {
+	public boolean read(boolean checkParity) throws ValueOutOfOperatingRangeException, ParityCheckException, IOException {
 		checkLastReadDelay();
 		lastRead = System.currentTimeMillis();
     	getData();
     	if (checkParity) {
 			checkParity();
 		}
-    	humidity = getReadingValueFromBytes(data[0], data[1]);
-    	temperature = getReadingValueFromBytes(data[2], data[3]);
+    	
+    	// Operating Ranges from specification sheet.
+    	// humidity 0-100
+    	// temperature -40~80
+    	double newHumidityValue = getReadingValueFromBytes(data[0], data[1]);
+    	if (newHumidityValue >= 0 && newHumidityValue <= 100) {
+   	        humidity = newHumidityValue;
+    	} else {
+    	    throw new ValueOutOfOperatingRangeException();
+    	}
+    	double newTemperatureValue = getReadingValueFromBytes(data[2], data[3]);
+        if (newTemperatureValue >= -40 && newTemperatureValue < 85) {
+            temperature = newTemperatureValue;
+        } else {
+            throw new ValueOutOfOperatingRangeException();
+        }
     	lastRead = System.currentTimeMillis();
     	return true;
     }
 	
-	private void checkLastReadDelay() throws Exception {
+	private void checkLastReadDelay() throws IOException {
 		if (Objects.nonNull(lastRead)) {
 			if (lastRead > System.currentTimeMillis() - 2000) {
-				throw new Exception("Last read was under 2 seconds ago. Please wait longer between reads!");
+				throw new IOException("Last read was under 2 seconds ago. Please wait longer between reads!");
 			}
 		}
 	}
@@ -259,6 +273,10 @@ public class DHT22 {
     
     public class ParityCheckException extends IOException {
 		private static final long serialVersionUID = 1L;
+    }
+    
+    public class ValueOutOfOperatingRangeException extends IOException {
+        private static final long serialVersionUID = 1L;
     }
 
 }

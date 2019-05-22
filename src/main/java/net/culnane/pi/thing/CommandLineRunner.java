@@ -90,6 +90,17 @@ public class CommandLineRunner {
 			Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
     	}
     	System.out.println("Read success rate: "+ countSuccess + " / " + TEST_LOOP_SIZE);
+    	
+    	// use the provided read loop.
+    	try {
+    	    System.out.println();
+    	    System.out.println("Running read loop method");
+            dht22.doReadLoop();
+            System.out.println("Humidity=" + dht22.getHumidity() + 
+                    "%, Temperature=" + dht22.getTemperature() + "*C");
+        } catch (IOException e) {
+            System.err.println("ERROR: " + e);
+        }
 	}
 
 	private static void runServoTest(Pin pin) throws InterruptedException {
