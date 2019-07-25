@@ -18,6 +18,7 @@ public class Servo {
 
 	private Relay powerRelay;
 	private GpioPinPwmOutput pwm;
+	private int currentAngle = -1;
 	
 	public Servo(Pin pwmPin) {
 		this(pwmPin, null);
@@ -60,7 +61,8 @@ public class Servo {
 			angle = 180;
 		}
 
-		if (powerRelay != null) {
+		if (powerRelay != null &&
+				(currentAngle < 0 || angle != currentAngle)) {
 			
 			if (powerRelay != null) {
 				powerRelay.on();
@@ -80,6 +82,7 @@ public class Servo {
 		// 20 = 180
 		int pwmRate = 10 + angle * 10 / 180;
 		pwm.setPwm(pwmRate);
+		currentAngle = angle;
 	}
 	
 }
