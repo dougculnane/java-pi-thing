@@ -1,5 +1,11 @@
 package net.culnane.pi.thing.sensor;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.InputStreamReader;
+
 /**
  * Implements the 1-Wire DS18B20 waterproof temperature sensor.
  * 
@@ -9,7 +15,9 @@ package net.culnane.pi.thing.sensor;
  */
 public class DS18B20 {
 
-	private static final String  ONE_WIRE_DEVICE_FOLDER = "/sys/bus/w1/devices/";
+	private static final String  ONE_WIRE_DEVICE_FOLDER = "/sys/bus/w1/devices";
+	
+	private String registeredDeviceMacAddress = "28-xxxxxxxxxxxx";
 	
     /**
      * Value of last successful temperature reading.
@@ -23,7 +31,8 @@ public class DS18B20 {
      *
      * @param pin
      */
-    public DS18B20() {
+    public DS18B20(String registeredDeviceMacAddress) {
+    	this.registeredDeviceMacAddress = registeredDeviceMacAddress;
     }
 
     /**
@@ -32,12 +41,47 @@ public class DS18B20 {
      * @throws Exception
      */
 	public boolean read() throws Exception {
-		// TODO....
-		//sudo modprobe w1-gpio
-		//sudo modprobe w1-therm
-		// list and read files in ONE_WIRE_DEVICE_FOLDER.
-    	return true;
+
+		boolean success = false;
+		File file = new File(ONE_WIRE_DEVICE_FOLDER + "/" + registeredDeviceMacAddress + "/w1_slave");
+		if (!file.exists()) {
+			throw new Exception("Device: " + registeredDeviceMacAddress + " not found not file at: " + file.getAbsolutePath());
+		}
+		FileInputStream fis = new FileInputStream(file);
+		InputStreamReader isr = new InputStreamReader(fis);
+		BufferedReader br = new BufferedReader(isr);
+		String line1 = br.readLine();
+		if (line1 != null && line1.endsWith(" YES")) {
+			String line2 = br.readLine();
+			if (line2 != null)  {
+				int startOfTemp = line2.indexOf(" t=");
+				if (startOfTemp > 0 ) {
+					String strTemp = line2.substring(startOfTemp + 3);
+					int intTemp = Integer.valueOf(strTemp);
+					this.temperature = Double.valueOf(intTemp) / 1000;
+					success = true;
+				}
+			}
+		}
+		br.close();
+		isr.close();
+		fis.close();
+    	return success;
     }
+	
+	public static String[] getDevices() {
+		File folder = new File(ONE_WIRE_DEVICE_FOLDER);
+		String[] registeredDevices = new String[0];
+		if (folder.exists() && folder.isDirectory()) {
+			registeredDevices = folder.list(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.startsWith("28-");
+				}
+			});
+		}
+		return registeredDevices;
+	}
 	
 	public Double getTemperature() {
 		return temperature;

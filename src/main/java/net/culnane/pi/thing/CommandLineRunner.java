@@ -64,9 +64,12 @@ public class CommandLineRunner {
 	}
 	
 	private static void runDS18B20Test() throws Exception {
-		DS18B20 ds18b20 = new DS18B20();
-		ds18b20.read();
-		System.out.println("Todo...");
+		String[] devices = DS18B20.getDevices();
+		for (String device : devices) {
+			DS18B20 ds18b20 = new DS18B20(device);
+			ds18b20.read();
+			System.out.println("Temperature on device " + device + " is: " + ds18b20.getTemperature() + "°C");
+		}
 	}
 
 	private static void runDHT22Test(Pin pin) throws InterruptedException {
