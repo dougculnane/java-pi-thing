@@ -2,13 +2,17 @@ package net.culnane.pi.thing.sensor;
 
 
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 
-class TestDHT22 {
+public class TestDHT22 {
+	
+	public TestDHT22() {
+		
+	}
 
 	@Test
-	void testGetReadingValueFromBytes() {
+	public void testGetReadingValueFromBytes() {
 		
 		Assert.assertEquals(0.1d, DHT22.getReadingValueFromBytes((byte)0, (byte)1), 0);
 		Assert.assertEquals(0.4d, DHT22.getReadingValueFromBytes((byte)0, (byte)4), 0);
