@@ -7,7 +7,7 @@
 	<groupId>net.culnane</groupId>
 	<artifactId>java-pi-thing</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>MyHomeSensor</name>
+	<name>Java PI Sensors</name>
 	<url>https://github.com/dougculnane/java-pi-thing</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
