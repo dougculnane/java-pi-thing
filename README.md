@@ -9,6 +9,6 @@ git clone https://github.com/dougculnane/java-pi-thing.git
 cd java-pi-thing
 mvn install
 scp target/java-pi-thing-VERSION-jar-with-dependencies.jar pi@my.raspberry.net:
-ssh pi@my.raspberry.net
+ssh pi@my.raspberry.pi
 java -jar java-pi-thing-VERSION-jar-with-dependencies.jar
 ```

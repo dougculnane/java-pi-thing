@@ -19,20 +19,23 @@ public class DS18B20 {
 	
 	private String registeredDeviceMacAddress = "28-xxxxxxxxxxxx";
 	
+	/**
+	 * Name of the sensor.
+	 */
+	private String name = "MyTempreatureSensor";
+	
     /**
      * Value of last successful temperature reading.
      */
     private Double temperature = null;
     
-    
-    /**
-     * Constructor with pin used for signal.  See PI4J and WiringPI for
-     * pin numbering systems.....
-     *
-     * @param pin
-     */
     public DS18B20(String registeredDeviceMacAddress) {
-    	this.registeredDeviceMacAddress = registeredDeviceMacAddress;
+        this.registeredDeviceMacAddress = registeredDeviceMacAddress;
+    }
+    
+    public DS18B20(String registeredDeviceMacAddress, String name) {
+        this(registeredDeviceMacAddress);
+    	this.name = name;
     }
 
     /**
@@ -47,25 +50,26 @@ public class DS18B20 {
 		if (!file.exists()) {
 			throw new Exception("Device: " + registeredDeviceMacAddress + " not found not file at: " + file.getAbsolutePath());
 		}
-		FileInputStream fis = new FileInputStream(file);
-		InputStreamReader isr = new InputStreamReader(fis);
-		BufferedReader br = new BufferedReader(isr);
-		String line1 = br.readLine();
-		if (line1 != null && line1.endsWith(" YES")) {
-			String line2 = br.readLine();
-			if (line2 != null)  {
-				int startOfTemp = line2.indexOf(" t=");
-				if (startOfTemp > 0 ) {
-					String strTemp = line2.substring(startOfTemp + 3);
-					int intTemp = Integer.valueOf(strTemp);
-					this.temperature = Double.valueOf(intTemp) / 1000;
-					success = true;
-				}
-			}
-		}
-		br.close();
-		isr.close();
-		fis.close();
+		try (FileInputStream fis = new FileInputStream(file);
+		     InputStreamReader isr = new InputStreamReader(fis);
+		      BufferedReader br = new BufferedReader(isr) ) {
+	        
+		    String line1 = br.readLine();
+	        if (line1 != null && line1.endsWith(" YES")) {
+	            String line2 = br.readLine();
+	            if (line2 != null)  {
+	                int startOfTemp = line2.indexOf(" t=");
+	                if (startOfTemp > 0 ) {
+	                    String strTemp = line2.substring(startOfTemp + 3);
+	                    int intTemp = Integer.valueOf(strTemp);
+	                    this.temperature = Double.valueOf(intTemp) / 1000;
+	                    success = true;
+	                }
+	            }
+	        }
+		} catch (Exception e) {
+            throw e;
+        }
     	return success;
     }
 	
@@ -85,5 +89,9 @@ public class DS18B20 {
 	
 	public Double getTemperature() {
 		return temperature;
+	}
+	
+	public String getName() {
+	    return name;
 	}
 }

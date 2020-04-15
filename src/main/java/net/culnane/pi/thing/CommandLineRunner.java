@@ -68,7 +68,8 @@ public class CommandLineRunner {
 		for (String device : devices) {
 			DS18B20 ds18b20 = new DS18B20(device);
 			ds18b20.read();
-			System.out.println("Temperature on device " + device + " is: " + ds18b20.getTemperature() + "°C");
+			System.out.println("Temperature on device " + ds18b20.getName() + 
+			        " ("+ device + ") is: " + ds18b20.getTemperature() + "°C");
 		}
 	}
 
