@@ -177,13 +177,20 @@ public class DHT22 {
 		}
 	}
 
-	private double getReadingValueFromBytes(final byte hi, final byte low) {
+	protected static double getReadingValueFromBytes(final byte hi, final byte low) {
 		ByteBuffer bb = ByteBuffer.allocate(2);
 		bb.order(ByteOrder.BIG_ENDIAN);
 		bb.put(hi);
 		bb.put(low);
 		short shortVal = bb.getShort(0);
-		return new Double(shortVal) / 10;
+		Double doubleValue = new Double(shortVal) / 10;
+		
+		// When highest bit of temperature is 1, it means the temperature is below 0 degree Celsius.
+		if (1 == ((hi >> 7) & 1)) {
+			doubleValue = (doubleValue + 3276.8) * -1d;
+    	}
+		
+		return doubleValue;
 	}
 
 	private void checkParity() throws ParityCheckException {
