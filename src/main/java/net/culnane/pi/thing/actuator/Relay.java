@@ -12,7 +12,14 @@ import com.pi4j.io.gpio.PinState;
  */
 public class Relay {
 	
+	/**
+	 * Name of the actuator.
+	 */
+	private String name = "MyRelay";
+	
 	private boolean wiredOffWithNoPower = false;
+	
+	private boolean on = false;
 	
 	private GpioPinDigitalOutput pin = null;
 	
@@ -21,12 +28,18 @@ public class Relay {
 		this.wiredOffWithNoPower = wiredOffWithNoPower;
 	}
 	
+	public Relay(Pin pin, boolean wiredOffWithNoPower, String name) {
+		this(pin, wiredOffWithNoPower);
+		this.name = name;
+	}
+	
 	public void on() {
 		if (wiredOffWithNoPower) {
 			pin.setState(PinState.HIGH);
 		} else {
 			pin.setState(PinState.LOW);
 		}
+		on = true;
 	}
 	
 	public void off() {
@@ -35,6 +48,14 @@ public class Relay {
 		} else {
 			pin.setState(PinState.HIGH);
 		}
+		on = false;
 	}
 
+	public String getName() {
+	    return name;
+	}
+	
+	public boolean isOn() {
+		return on;
+	}
 }

@@ -25,6 +25,12 @@ import com.pi4j.wiringpi.Gpio;
  */
 public class DHT22 {
 
+
+	/**
+	 * Name of the sensor.
+	 */
+	private String name = "MyTemperatureHumiditySensor";
+	
 	/**
 	 * Time in nanoseconds to separate ZERO and ONE signals.
 	 */
@@ -70,6 +76,12 @@ public class DHT22 {
         pinNumber = pin.getAddress();
     }
 
+    
+    public DHT22(Pin pin, String name) {
+    	this(pin);
+    	this.name = name;
+    }
+    
     /**
      * Communicate with sensor to get new reading data.
      * @throws ExecutionException 
@@ -286,4 +298,7 @@ public class DHT22 {
         private static final long serialVersionUID = 1L;
     }
 
+	public String getName() {
+	    return name;
+	}
 }

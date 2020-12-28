@@ -22,7 +22,7 @@ public class DS18B20 {
 	/**
 	 * Name of the sensor.
 	 */
-	private String name = "MyTempreatureSensor";
+	private String name = "MyTemperatureSensor";
 	
     /**
      * Value of last successful temperature reading.

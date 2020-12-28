@@ -20,6 +20,11 @@ public class Servo {
 	private GpioPinPwmOutput pwm;
 	private int currentAngle = -1;
 	
+	/**
+	 * Name of the actuator.
+	 */
+	private String name = "MyServo";
+	
 	public Servo(Pin pwmPin) {
 		this(pwmPin, null);
 	}
@@ -50,6 +55,11 @@ public class Servo {
 		com.pi4j.wiringpi.Gpio.pwmSetMode(com.pi4j.wiringpi.Gpio.PWM_MODE_MS);
 		com.pi4j.wiringpi.Gpio.pwmSetRange(200);
 		com.pi4j.wiringpi.Gpio.pwmSetClock(1920);
+	}
+	
+	public Servo(Pin pwmPin, Pin powerRelayPin, String name) {
+		this(pwmPin, powerRelayPin);
+		this.name = name;
 	}
 
 	public synchronized void setPositionAngle(int angle) {
@@ -83,6 +93,10 @@ public class Servo {
 		int pwmRate = 10 + angle * 10 / 180;
 		pwm.setPwm(pwmRate);
 		currentAngle = angle;
+	}
+	
+	public String getName() {
+	    return name;
 	}
 	
 }
