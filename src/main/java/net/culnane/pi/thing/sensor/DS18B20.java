@@ -50,6 +50,7 @@ public class DS18B20 {
 		if (!file.exists()) {
 			throw new Exception("Device: " + registeredDeviceMacAddress + " not found not file at: " + file.getAbsolutePath());
 		}
+		Exception exception = null;
 		try (FileInputStream fis = new FileInputStream(file);
 		     InputStreamReader isr = new InputStreamReader(fis);
 		      BufferedReader br = new BufferedReader(isr) ) {
@@ -68,8 +69,11 @@ public class DS18B20 {
 	            }
 	        }
 		} catch (Exception e) {
-            throw e;
+			exception = e;
         }
+		if (exception != null) {
+			throw exception;
+		}
     	return success;
     }
 	
