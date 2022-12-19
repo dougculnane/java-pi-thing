@@ -13,8 +13,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.wiringpi.Gpio;
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalInput;
+import com.pi4j.io.gpio.digital.DigitalInputConfigBuilder;
+import com.pi4j.io.gpio.digital.DigitalOutput;
+import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
+import com.pi4j.io.gpio.digital.DigitalState;
+
+import net.culnane.pi.helper.PIN;
 
 /**
  * Implements the DHT22 / AM2302 reading in Java using Pi4J.
@@ -41,10 +47,8 @@ public class DHT22 {
 	 */
 	public static final int MIN_MILLISECS_BETWEEN_READS = 2500;
     
-	/**
-	 * PI4J Pin number.
-	 */
-    private int pinNumber;
+    private DigitalInput digitalInput = null;
+	private DigitalOutput digitalOutput = null;
     
     /**
      * 40 bit Data from sensor
@@ -66,21 +70,32 @@ public class DHT22 {
      */
     private Long lastRead = null;
     
-    /**
-     * Constructor with pin used for signal.  See PI4J and WiringPI for
-     * pin numbering systems.....
-     *
-     * @param pin
-     */
-    public DHT22(Pin pin) {
-        pinNumber = pin.getAddress();
+    
+    public DHT22(Context pi4jContext, PIN pin) {
+    	this(pi4jContext, pin, "DHT22 " + pin.getPin());
+    	
+    }
+    
+    public DHT22(Context pi4jContext, PIN pin, String name) {
+    	this.name = name;
+		DigitalInputConfigBuilder pinConfig = DigitalInput.newConfigBuilder(pi4jContext)
+			      .id("DHT22-in-" + pin.getPin())
+			      .name(name)
+			      .address(pin.getPin())
+			      .provider("pigpio-digital-input");
+		digitalInput = pi4jContext.create(pinConfig);
+		
+		DigitalOutputConfigBuilder relayConfig = DigitalOutput.newConfigBuilder(pi4jContext)
+			      .id("DHT22-out-" + pin.getPin())
+			      .name(name)
+			      .address(pin.getPin())
+			      .shutdown(DigitalState.LOW)
+			      .initial(DigitalState.LOW)
+			      .provider("pigpio-digital-output");
+			      
+		digitalOutput = pi4jContext.create(relayConfig);
     }
 
-    
-    public DHT22(Pin pin, String name) {
-    	this(pin);
-    	this.name = name;
-    }
     
     /**
      * Communicate with sensor to get new reading data.
@@ -195,7 +210,7 @@ public class DHT22 {
 		bb.put(hi);
 		bb.put(low);
 		short shortVal = bb.getShort(0);
-		Double doubleValue = new Double(shortVal) / 10;
+		Double doubleValue = Double.valueOf(shortVal) / 10;
 		
 		// When highest bit of temperature is 1, it means the temperature is below 0 degree Celsius.
 		if (1 == ((hi >> 7) & 1)) {
@@ -227,8 +242,7 @@ public class DHT22 {
     	private boolean keepRunning = true;
     	
     	public ReadSensorFuture() {
-    		Gpio.pinMode(pinNumber, Gpio.OUTPUT);
-       		Gpio.digitalWrite(pinNumber, Gpio.HIGH);
+       		digitalOutput.high();
     	}
     	
 		@Override
@@ -242,10 +256,10 @@ public class DHT22 {
 	    	sendStartSignal();
 	    	waitForResponseSignal();
 	    	for (int i = 0; i < 40; i++) {
-	            while (keepRunning && Gpio.digitalRead(pinNumber) == Gpio.LOW) {
+	            while (keepRunning && digitalInput.isLow()) {
 	        	}
 	        	startTime = System.nanoTime();    
-	            while (keepRunning && Gpio.digitalRead(pinNumber) == Gpio.HIGH) {
+	            while (keepRunning && digitalInput.isHigh()) {
 	            }
 	            long timeHight = System.nanoTime() - startTime;
 	            data[i / 8] <<= 1;
@@ -260,10 +274,7 @@ public class DHT22 {
 		
 		private void sendStartSignal() {
 	    	// Send start signal.
-	    	Gpio.pinMode(pinNumber, Gpio.OUTPUT);
-	        Gpio.digitalWrite(pinNumber, Gpio.LOW);
-	        Gpio.delay(10);
-	        Gpio.digitalWrite(pinNumber, Gpio.HIGH);
+			digitalOutput.high().blink(10, TimeUnit.MILLISECONDS);
 		}
 
 	    /**
@@ -271,12 +282,11 @@ public class DHT22 {
 	     * AM2302 pulls up 80us for preparation to send data.
 	     */
 	    private void waitForResponseSignal() {
-	    	Gpio.pinMode(pinNumber, Gpio.INPUT);
-	        while (keepRunning && Gpio.digitalRead(pinNumber) == Gpio.HIGH) {
+	        while (keepRunning && digitalInput.isHigh()) {
 	        }
-	        while (keepRunning && Gpio.digitalRead(pinNumber) == Gpio.LOW) {
+	        while (keepRunning && digitalInput.isLow()) {
 	    	}
-	        while (keepRunning && Gpio.digitalRead(pinNumber) == Gpio.HIGH) {
+	        while (keepRunning && digitalInput.isHigh()) {
 	        }
 	    }
 
@@ -285,8 +295,7 @@ public class DHT22 {
 			keepRunning = false;
 			
 			// Set pin high for end of transmission.
-			Gpio.pinMode(pinNumber, Gpio.OUTPUT);
-	    	Gpio.digitalWrite(pinNumber, Gpio.HIGH);
+			digitalInput.isHigh();
 		}
     }
     

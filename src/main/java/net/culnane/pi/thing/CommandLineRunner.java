@@ -5,10 +5,11 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.wiringpi.Gpio;
+import com.pi4j.Pi4J;
+import com.pi4j.context.Context;
 
+import net.culnane.pi.exceptions.PinConfigurationException;
+import net.culnane.pi.helper.PIN;
 import net.culnane.pi.thing.actuator.Relay;
 import net.culnane.pi.thing.actuator.Servo;
 import net.culnane.pi.thing.sensor.DHT22;
@@ -29,30 +30,23 @@ public class CommandLineRunner {
 			return;
 		}
 		
-		if (Gpio.wiringPiSetup() == -1) {
-            System.err.println("GPIO wiringPiSetup Failed!");
-            return;
-        }
 		
-		Pin pin = null;
+		
+		Integer pinNumber = null;
 		if (args.length > 1) {
-			int pinNumber = Integer.valueOf(args[1]);
-			pin = RaspiPin.getPinByAddress(pinNumber);
-	    	if (Objects.isNull(pin)) {
-	    		System.err.println("Can not find pin number: " + args[0]);
-	    		return;
-	    	}
+			pinNumber = Integer.valueOf(args[1]);
 		}
 		
+		Context pi4jContext = Pi4J.newAutoContext();
 		switch (args[0]) {
 		case "Relay":
-			runRelyTest(pin);
+			runRelyTest(pi4jContext, pinNumber);
 			break;
 		case "Servo":
-			runServoTest(pin);
+			runServoTest(pi4jContext, pinNumber);
 			break;
 		case "DHT22":
-			runDHT22Test(pin);
+			runDHT22Test(pi4jContext, pinNumber);
 			break;
 		case "DS18B20":
 			runDS18B20Test();
@@ -73,11 +67,14 @@ public class CommandLineRunner {
 		}
 	}
 
-	private static void runDHT22Test(Pin pin) throws InterruptedException {
-		if (pin == null) {
-			pin = RaspiPin.GPIO_05;
+	private static void runDHT22Test(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
+		PIN pin;
+		if (pinNumber == null) {
+			pin = PIN.D5;
+		} else {
+			pin = PIN.getDigitalPin(pinNumber);
 		}
-    	DHT22 dht22 = new DHT22(pin);
+    	DHT22 dht22 = new DHT22(pi4jContext, pin);
     	int countSuccess = 0;
     	for (int i=0; i < TEST_LOOP_SIZE; i++) {
 			System.out.println();
@@ -107,11 +104,14 @@ public class CommandLineRunner {
         }
 	}
 
-	private static void runServoTest(Pin pin) throws InterruptedException {
-		if (pin == null) {
-			pin = RaspiPin.GPIO_01;
+	private static void runServoTest(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
+		PIN pin;
+		if (pinNumber == null) {
+			pin = PIN.PWM12;
+		} else {
+			pin = PIN.getPwmPin(pinNumber);
 		}
-		Servo servo = new Servo(pin);
+		Servo servo = new Servo(pi4jContext, pin);
 		for (int j=0; j < TEST_LOOP_SIZE; j++) {
 
 			// rotate 180 in 1 second.
@@ -128,11 +128,14 @@ public class CommandLineRunner {
 		}
 	}
 
-	private static void runRelyTest(Pin pin ) throws InterruptedException{
-		if (pin == null) {
-			pin = RaspiPin.GPIO_05;
+	private static void runRelyTest(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
+		PIN pin;
+		if (pinNumber == null) {
+			pin = PIN.D5;
+		} else {
+			pin = PIN.getDigitalPin(pinNumber);
 		}
-		Relay relay = new Relay(pin, true);
+		Relay relay = new Relay(pi4jContext, pin, true);
 		for (int i=0; i < TEST_LOOP_SIZE; i++) {
 			Thread.sleep(1000);
 			relay.on();

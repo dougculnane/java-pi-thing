@@ -1,9 +1,11 @@
 package net.culnane.pi.thing.actuator;
 
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.PinState;
+import com.pi4j.context.Context;
+import com.pi4j.io.gpio.digital.DigitalOutput;
+import com.pi4j.io.gpio.digital.DigitalOutputConfigBuilder;
+import com.pi4j.io.gpio.digital.DigitalState;
+
+import net.culnane.pi.helper.PIN;
 
 /**
  * Relay switch.
@@ -21,32 +23,39 @@ public class Relay {
 	
 	private boolean on = false;
 	
-	private GpioPinDigitalOutput pin = null;
+	private DigitalOutput digitalOutput = null;
 	
-	public Relay(Pin pin, boolean wiredOffWithNoPower) {
-		this.pin = GpioFactory.getInstance().provisionDigitalOutputPin(pin, PinState.LOW);
-		this.wiredOffWithNoPower = wiredOffWithNoPower;
+	public Relay(Context pi4jContext, PIN pin, boolean wiredOffWithNoPower) {
+		this(pi4jContext, pin, wiredOffWithNoPower, "Relay pin " + pin.getPin());
 	}
 	
-	public Relay(Pin pin, boolean wiredOffWithNoPower, String name) {
-		this(pin, wiredOffWithNoPower);
+	public Relay(Context pi4jContext, PIN pin, boolean wiredOffWithNoPower, String name) {
+		DigitalOutputConfigBuilder relayConfig = DigitalOutput.newConfigBuilder(pi4jContext)
+			      .id("relay-" + pin.getPin())
+			      .name(name)
+			      .address(pin.getPin())
+			      .shutdown(DigitalState.LOW)
+			      .initial(DigitalState.LOW)
+			      .provider("pigpio-digital-output");
+			      
+		digitalOutput = pi4jContext.create(relayConfig);
 		this.name = name;
 	}
 	
 	public void on() {
 		if (wiredOffWithNoPower) {
-			pin.setState(PinState.HIGH);
+			digitalOutput.high();
 		} else {
-			pin.setState(PinState.LOW);
+			digitalOutput.low();
 		}
 		on = true;
 	}
 	
 	public void off() {
 		if (wiredOffWithNoPower) {
-			pin.setState(PinState.LOW);
+			digitalOutput.low();
 		} else {
-			pin.setState(PinState.HIGH);
+			digitalOutput.high();
 		}
 		on = false;
 	}

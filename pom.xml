@@ -11,6 +11,7 @@
 	<url>https://github.com/dougculnane/java-pi-thing</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<pi4j.version>2.2.1</pi4j.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -19,11 +20,23 @@
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.pi4j</groupId>
-			<artifactId>pi4j-core</artifactId>
-			<version>1.2</version>
-		</dependency>
+	    <!-- include Pi4J Core -->
+	    <dependency>
+	        <groupId>com.pi4j</groupId>
+	        <artifactId>pi4j-core</artifactId>
+	        <version>${pi4j.version}</version>
+	    </dependency>
+	    <!-- include Pi4J Plugins (Platforms and I/O Providers) -->
+	    <dependency>
+	        <groupId>com.pi4j</groupId>
+	        <artifactId>pi4j-plugin-raspberrypi</artifactId>
+	        <version>${pi4j.version}</version>
+	    </dependency>
+	    <dependency>
+	        <groupId>com.pi4j</groupId>
+	        <artifactId>pi4j-plugin-pigpio</artifactId>
+	        <version>${pi4j.version}</version>
+    	</dependency>
 	</dependencies>
 	<build>
 		<resources>
