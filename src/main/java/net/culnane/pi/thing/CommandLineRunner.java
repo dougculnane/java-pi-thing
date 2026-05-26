@@ -139,7 +139,7 @@ public class CommandLineRunner {
 	private static void runRelyTest(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
 		PIN pin;
 		if (pinNumber == null) {
-			pin = PIN.D5;
+			pin = PIN.D6;
 		} else {
 			pin = PIN.getDigitalPin(pinNumber);
 		}

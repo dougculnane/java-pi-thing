@@ -81,17 +81,17 @@ public class DHT22 {
 		DigitalInputConfigBuilder pinConfig = DigitalInput.newConfigBuilder(pi4jContext)
 			      .id("DHT22-in-" + pin.getPin())
 			      .name(name)
-			      .address(pin.getPin())
-			      .provider("pigpio-digital-input");
+			      .bcm(pin.getPin())
+			      .provider("ffm-digital-input");
 		digitalInput = pi4jContext.create(pinConfig);
 		
 		DigitalOutputConfigBuilder relayConfig = DigitalOutput.newConfigBuilder(pi4jContext)
 			      .id("DHT22-out-" + pin.getPin())
 			      .name(name)
-			      .address(pin.getPin())
+			      .bcm(pin.getPin())
 			      .shutdown(DigitalState.LOW)
 			      .initial(DigitalState.LOW)
-			      .provider("pigpio-digital-output");
+			      .provider("ffm-digital-output");
 			      
 		digitalOutput = pi4jContext.create(relayConfig);
     }

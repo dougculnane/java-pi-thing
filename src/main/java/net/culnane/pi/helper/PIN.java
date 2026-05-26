@@ -23,8 +23,8 @@ public enum PIN {
 	D11(11), 
 	CEO(8), 
 	CE1(7), 
-	D5(5),     // GPIO_05 https://pinout.xyz/pinout/pin29_gpio5#;
-	D6(6), 
+	D5(5),     // GPIO_05 https://pinout.xyz/pinout/pin29_gpio5
+	D6(6),     // GPIO_06 https://pinout.xyz/pinout/pin31_gpio6
 	D16(16),
 	D26(26),
 	D20(20),
