@@ -36,7 +36,7 @@ public class Relay {
 			      .address(pin.getPin())
 			      .shutdown(DigitalState.LOW)
 			      .initial(DigitalState.LOW)
-			      .provider("pigpio-digital-output");
+			      .provider("ffm-digital-output");
 			      
 		digitalOutput = pi4jContext.create(relayConfig);
 		this.name = name;

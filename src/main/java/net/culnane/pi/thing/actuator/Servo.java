@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit;
 import com.pi4j.context.Context;
 import com.pi4j.io.pwm.Pwm;
 import com.pi4j.io.pwm.PwmConfig;
+import com.pi4j.io.pwm.PwmType;
 
 import net.culnane.pi.helper.PIN;
 
@@ -40,8 +41,8 @@ public class Servo {
     protected final static int DEFAULT_MAX_DUTY_CYCLE = 12;
     
 	private Relay powerRelay;
-    private final Pwm pwm;
 	private int currentAngle = -1;
+	private Pwm pwm;
 	
 	/**
 	 * Name of the actuator.
@@ -57,14 +58,22 @@ public class Servo {
 	}
 	
 	public Servo(Context pi4jContext, PIN pin, PIN powerRelayPin, String name) {
-		PwmConfig pwmConfig = Pwm.newConfigBuilder(pi4jContext)
-	                .id("BCM" + pin.getPin())
-	                .name(name)
-	                .address(pin.getPin())
-	                .frequency(DEFAULT_FREQUENCY)
-	                .initial(0)
-	                .shutdown(0)
-	                .build();
+	    
+	    
+	    // Build the PWM configuration for the hardware pin
+	    PwmConfig pwmConfig = Pwm.newConfigBuilder(pi4jContext)
+            .id(pin.toString())
+            .name("Hardware PWM " + pin.getPin())
+            .bcm(pin.getPin()) // BCM Pin 18
+            .pwmType(PwmType.HARDWARE)
+            .channel(0)
+            .chip(0)
+            .provider("ffm-pwm") 
+            .frequency(DEFAULT_FREQUENCY) // Set frequency to 100 Hz
+            .initial(50)    // Set initial duty cycle to 50%
+            .build();
+
+        // Create the PWM instance
 		this.pwm = pi4jContext.create(pwmConfig);
 		this.name = name;
 		if (powerRelayPin != null) {
@@ -114,7 +123,7 @@ public class Servo {
      * @param inputEnd   Maximum value for custom range
      * @return Duty cycle required to achieve this position
      */
-    private float mapToDutyCycle(int input, int inputStart, int inputEnd) {
+    private int mapToDutyCycle(int input, int inputStart, int inputEnd) {
         return mapRange(input, inputStart, inputEnd, DEFAULT_MIN_DUTY_CYCLE, DEFAULT_MAX_DUTY_CYCLE);
     }
 
@@ -128,7 +137,7 @@ public class Servo {
      * @param outputEnd   Maximum value for output
      * @return Mapped input value
      */
-    private static float mapRange(float input, float inputStart, float inputEnd, float outputStart, float outputEnd) {
+    private static int mapRange(float input, float inputStart, float inputEnd, float outputStart, float outputEnd) {
         // Automatically swap minimum/maximum of input if inverted
         if (inputStart > inputEnd) {
             final float tmp = inputEnd;
@@ -145,7 +154,7 @@ public class Servo {
 
         // Automatically clamp the input value and calculate the mapped value
         final float clampedInput = Math.min(inputEnd, Math.max(inputStart, input));
-        return outputStart + ((outputEnd - outputStart) / (inputEnd - inputStart)) * (clampedInput - inputStart);
+        return Math.round(outputStart + ((outputEnd - outputStart) / (inputEnd - inputStart)) * (clampedInput - inputStart));
     }
 
     /**

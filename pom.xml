@@ -11,7 +11,7 @@
 	<url>https://github.com/dougculnane/java-pi-thing</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<pi4j.version>2.2.1</pi4j.version>
+		<pi4j.version>4.0.1</pi4j.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -34,7 +34,7 @@
 	    </dependency>
 	    <dependency>
 	        <groupId>com.pi4j</groupId>
-	        <artifactId>pi4j-plugin-pigpio</artifactId>
+	        <artifactId>pi4j-plugin-ffm</artifactId>
 	        <version>${pi4j.version}</version>
     	</dependency>
 	</dependencies>
