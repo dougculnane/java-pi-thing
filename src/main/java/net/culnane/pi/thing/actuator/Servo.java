@@ -14,6 +14,10 @@ import net.culnane.pi.helper.PIN;
  * Servo controller.
  *
  * https://github.com/Pi4J/pi4j-example-components/blob/main/src/main/java/com/pi4j/catalog/components/ServoMotor.java
+ * 
+ * Position "0" (1.5ms pulse) is middle, 
+ * "90" (~2ms pulse) is all the way to the right, 
+ * "-90" (~1ms pulse) is all the way to the left.
  */
 public class Servo {
 
@@ -30,15 +34,15 @@ public class Servo {
      * Default maximum angle of the servo motor, based on values for SG92R
      */
     protected static final int DEFAULT_MAX_ANGLE = 90;
-
+    
     /**
-     * Default minimum PWM duty cycle to put the PWM into the minimum angle position
+     * Default minimum PWM duty cycle to put the PWM into the minimum angle position in percent (0.5ms pulse)
      */
-    protected final static int DEFAULT_MIN_DUTY_CYCLE = 2;
+    protected final static int DEFAULT_MIN_DUTY_CYCLE = (int)(0.5 * 100 / (1000 / DEFAULT_FREQUENCY)) ;
     /**
-     * Maximum PWM duty cycle to put the PWM into the maximum angle position
+     * Maximum PWM duty cycle to put the PWM into the maximum angle position in percent (2.5ms pulse)
      */
-    protected final static int DEFAULT_MAX_DUTY_CYCLE = 12;
+    protected final static int DEFAULT_MAX_DUTY_CYCLE = (int)(2.5 * 100 / (1000 / DEFAULT_FREQUENCY)) ;
     
 	private Relay powerRelay;
 	private int currentAngle = -1;
@@ -58,13 +62,15 @@ public class Servo {
 	}
 	
 	public Servo(Context pi4jContext, PIN pin, PIN powerRelayPin, String name) {
-	    
+	    if (pin != PIN.PWM18) {
+	        throw new RuntimeException("For PWM use pin 18 the PCM Clock");
+	    }
 	    
 	    // Build the PWM configuration for the hardware pin
 	    PwmConfig pwmConfig = Pwm.newConfigBuilder(pi4jContext)
             .id(pin.toString())
             .name("Hardware PWM " + pin.getPin())
-            .bcm(pin.getPin()) // BCM Pin 18
+            .bcm(pin.getPin())
             .pwmType(PwmType.HARDWARE)
             .channel(0)
             .chip(0)
@@ -123,7 +129,7 @@ public class Servo {
      * @param inputEnd   Maximum value for custom range
      * @return Duty cycle required to achieve this position
      */
-    private int mapToDutyCycle(int input, int inputStart, int inputEnd) {
+	protected static int mapToDutyCycle(int input, int inputStart, int inputEnd) {
         return mapRange(input, inputStart, inputEnd, DEFAULT_MIN_DUTY_CYCLE, DEFAULT_MAX_DUTY_CYCLE);
     }
 
@@ -137,21 +143,7 @@ public class Servo {
      * @param outputEnd   Maximum value for output
      * @return Mapped input value
      */
-    private static int mapRange(float input, float inputStart, float inputEnd, float outputStart, float outputEnd) {
-        // Automatically swap minimum/maximum of input if inverted
-        if (inputStart > inputEnd) {
-            final float tmp = inputEnd;
-            inputEnd = inputStart;
-            inputStart = tmp;
-        }
-
-        // Automatically swap minimum/maximum of output if inverted
-        if (outputStart > outputEnd) {
-            final float tmp = outputEnd;
-            outputEnd = outputStart;
-            outputStart = tmp;
-        }
-
+	private static int mapRange(float input, float inputStart, float inputEnd, float outputStart, float outputEnd) {
         // Automatically clamp the input value and calculate the mapped value
         final float clampedInput = Math.min(inputEnd, Math.max(inputStart, input));
         return Math.round(outputStart + ((outputEnd - outputStart) / (inputEnd - inputStart)) * (clampedInput - inputStart));

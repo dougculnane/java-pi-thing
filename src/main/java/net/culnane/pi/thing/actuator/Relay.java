@@ -33,7 +33,7 @@ public class Relay {
 		DigitalOutputConfigBuilder relayConfig = DigitalOutput.newConfigBuilder(pi4jContext)
 			      .id("relay-" + pin.getPin())
 			      .name(name)
-			      .address(pin.getPin())
+			      .bcm(pin.getPin())
 			      .shutdown(DigitalState.LOW)
 			      .initial(DigitalState.LOW)
 			      .provider("ffm-digital-output");

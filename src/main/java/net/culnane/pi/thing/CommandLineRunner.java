@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 
+import jdk.internal.org.jline.utils.Log;
 import net.culnane.pi.exceptions.PinConfigurationException;
 import net.culnane.pi.helper.PIN;
 import net.culnane.pi.thing.actuator.Relay;
@@ -29,8 +30,6 @@ public class CommandLineRunner {
 			System.out.println(JAVA_CMD + "<Relay|Servo|DHT22|DS18B20> [pinNumber]");
 			return;
 		}
-		
-		
 		
 		Integer pinNumber = null;
 		if (args.length > 1) {
@@ -105,25 +104,34 @@ public class CommandLineRunner {
 	}
 
 	private static void runServoTest(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
-		PIN pin;
-		if (pinNumber == null) {
-			pin = PIN.PWM12;
-		} else {
-			pin = PIN.getPwmPin(pinNumber);
-		}
+	    final int delayMills = 100;
+	    PIN pin = PIN.PWM18;  // Use hardare clock pin.
 		Servo servo = new Servo(pi4jContext, pin);
+		
+		System.out.println("setting servo to -90");
+		servo.setPositionAngle(-90);
+		Thread.sleep(delayMills * 50);
+		System.out.println("setting servo to 0");
+        servo.setPositionAngle(0);
+	    Thread.sleep(delayMills * 50);
+	    System.out.println("setting servo to 90");
+	    servo.setPositionAngle(90);
+	    Thread.sleep(delayMills * 50);
+	    
 		for (int j=0; j < TEST_LOOP_SIZE; j++) {
-
-			// rotate 180 in 1 second.
-			for (int i = 0; i <= 180; i++) {
-				servo.setPositionAngle(i);
-				Thread.sleep(1000/181);
+	        System.out.println("");
+			// rotate 180
+			for (int i = -9; i <= 9; i++) {
+			    System.out.println("setting servo to: " + i*10);
+				servo.setPositionAngle(i*10);
+				Thread.sleep(delayMills);
 			}
 			
-			// rotate back 180 in 1 second.
-			for (int i = 180; i >= 0; i--) {
-				servo.setPositionAngle(i);
-				Thread.sleep(1000/181);
+			// rotate back 180
+			for (int i = 9; i >= -9; i--) {
+			    System.out.println("setting servo to: " + i*10);
+				servo.setPositionAngle(i*10);
+				Thread.sleep(delayMills);
 			}
 		}
 	}
