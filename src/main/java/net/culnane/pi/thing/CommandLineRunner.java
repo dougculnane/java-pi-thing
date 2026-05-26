@@ -8,17 +8,15 @@ import java.util.concurrent.TimeoutException;
 import com.pi4j.Pi4J;
 import com.pi4j.context.Context;
 
-import jdk.internal.org.jline.utils.Log;
 import net.culnane.pi.exceptions.PinConfigurationException;
 import net.culnane.pi.helper.PIN;
 import net.culnane.pi.thing.actuator.Relay;
 import net.culnane.pi.thing.actuator.Servo;
-import net.culnane.pi.thing.sensor.DHT22;
 import net.culnane.pi.thing.sensor.DS18B20;
 
 public class CommandLineRunner {
 
-	private static final int TEST_LOOP_SIZE = 10;
+	private static final int TEST_LOOP_SIZE = 5;
 	
 	public static final String JAVA_CMD = "java -jar ./java-pi-thing-" 
 			+ getVersion() + "-jar-with-dependencies.jar ";
@@ -27,7 +25,7 @@ public class CommandLineRunner {
 		
 		if (Objects.isNull(args) || args.length == 0) {
 			System.out.println("Command line usage:");
-			System.out.println(JAVA_CMD + "<Relay|Servo|DHT22|DS18B20> [pinNumber]");
+			System.out.println(JAVA_CMD + "<Relay|Servo|DS18B20> [pinNumber]");
 			return;
 		}
 		
@@ -43,9 +41,6 @@ public class CommandLineRunner {
 			break;
 		case "Servo":
 			runServoTest(pi4jContext, pinNumber);
-			break;
-		case "DHT22":
-			runDHT22Test(pi4jContext, pinNumber);
 			break;
 		case "DS18B20":
 			runDS18B20Test();
@@ -66,57 +61,20 @@ public class CommandLineRunner {
 		}
 	}
 
-	private static void runDHT22Test(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
-		PIN pin;
-		if (pinNumber == null) {
-			pin = PIN.D5;
-		} else {
-			pin = PIN.getDigitalPin(pinNumber);
-		}
-    	DHT22 dht22 = new DHT22(pi4jContext, pin);
-    	int countSuccess = 0;
-    	for (int i=0; i < TEST_LOOP_SIZE; i++) {
-			System.out.println();
-			try {
-				dht22.read();
-    	        System.out.println("Humidity=" + dht22.getHumidity() + 
-    	        		"%, Temperature=" + dht22.getTemperature() + "*C");
-    	        countSuccess++;
-    		} catch (TimeoutException e) {
-    			System.err.println("ERROR: " + e);
-			} catch (Exception e) {
-				System.err.println("ERROR: " + e);
-			}
-			Thread.sleep(DHT22.MIN_MILLISECS_BETWEEN_READS);
-    	}
-    	System.out.println("Read success rate: "+ countSuccess + " / " + TEST_LOOP_SIZE);
-    	
-    	// use the provided read loop.
-    	try {
-    	    System.out.println();
-    	    System.out.println("Running read loop method");
-            dht22.doReadLoop();
-            System.out.println("Humidity=" + dht22.getHumidity() + 
-                    "%, Temperature=" + dht22.getTemperature() + "*C");
-        } catch (IOException e) {
-            System.err.println("ERROR: " + e);
-        }
-	}
-
 	private static void runServoTest(Context pi4jContext, Integer pinNumber) throws InterruptedException, PinConfigurationException {
-	    final int delayMills = 100;
-	    PIN pin = PIN.PWM18;  // Use hardare clock pin.
+	    final int delayMills = 500;
+	    PIN pin = PIN.PWM18;  // Use hardware clock pin.
 		Servo servo = new Servo(pi4jContext, pin);
 		
 		System.out.println("setting servo to -90");
 		servo.setPositionAngle(-90);
-		Thread.sleep(delayMills * 50);
+		Thread.sleep(delayMills * 10);
 		System.out.println("setting servo to 0");
         servo.setPositionAngle(0);
-	    Thread.sleep(delayMills * 50);
+	    Thread.sleep(delayMills * 10);
 	    System.out.println("setting servo to 90");
 	    servo.setPositionAngle(90);
-	    Thread.sleep(delayMills * 50);
+	    Thread.sleep(delayMills * 10);
 	    
 		for (int j=0; j < TEST_LOOP_SIZE; j++) {
 	        System.out.println("");
