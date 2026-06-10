@@ -1,0 +1,19 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: builder 
+    steps:
+
+      - name: Checkout code
+        run: |
+          git config --global http."https://forgejo.culnane.net/".sslCAInfo /etc/ca-certificates/update.d/culnane-ca.pem
+          git clone https://runner:kkFdl6YPKPS4Seah8thb@forgejo.culnane.net/${{ env.FORGEJO_REPOSITORY }}
+
+      - name: Install and Deploy
+        run:  |
+          cd java-pi-thing 
+          mvn install deploy
+

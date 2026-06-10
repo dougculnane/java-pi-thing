@@ -65,4 +65,14 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+                <repository>
+                        <id>forgejo-culnane-net</id>
+                        <url>https://forgejo.culnane.net/api/packages/culnane.net/maven</url>
+                </repository>
+                <snapshotRepository>
+                        <id>forgejo-culnane-net</id>
+                        <url>https://forgejo.culnane.net/api/packages/culnane.net/maven</url>
+                </snapshotRepository>
+        </distributionManagement>
 </project>
